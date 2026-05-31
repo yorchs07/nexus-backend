@@ -120,7 +120,7 @@ router.get('/history', authMiddleware, async (req, res) => {
 })
 
 //Dashboard
-// DASHBOARD
+
 router.get('/stats', authMiddleware, async (req, res) => {
   const userId = req.user.id
 
@@ -140,9 +140,12 @@ router.get('/stats', authMiddleware, async (req, res) => {
   startOfDay.setHours(0, 0, 0, 0)
 
   const startOfWeek = new Date(now)
-  startOfWeek.setDate(now.getDate() - now.getDay())
+  const dayOfWeek = (now.getDay() + 6) % 7
+  startOfWeek.setDate(now.getDate() - dayOfWeek)
+  startOfWeek.setHours(0, 0, 0, 0)
 
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+  startOfMonth.setHours(0, 0, 0, 0)
 
   const calcStats = (entries, fromDate) => {
     const filtered = entries.filter((e) => new Date(e.check_in) >= fromDate)
@@ -153,12 +156,10 @@ router.get('/stats', authMiddleware, async (req, res) => {
     filtered.forEach((e) => {
       const start = new Date(e.check_in)
       const end = new Date(e.check_out)
-
       const minutes = Math.floor((end - start) / 60000)
       totalMinutes += minutes
 
       const task = e.task || 'Trabajo'
-
       if (!byTask[task]) byTask[task] = 0
       byTask[task] += minutes
     })
