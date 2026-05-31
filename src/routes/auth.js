@@ -77,7 +77,6 @@ router.patch('/me', authMiddleware, async (req, res) => {
 
     const updates = {}
 
-    // Validar y procesar nombre si viene
     if (name !== undefined) {
       if (typeof name !== 'string') {
         return res.status(400).json({ error: 'El nombre debe ser texto' })
@@ -89,14 +88,7 @@ router.patch('/me', authMiddleware, async (req, res) => {
       updates.name = trimmed || null
     }
 
-    // Validar y procesar color si viene
     if (color !== undefined) {
-      console.log(
-        '[PATCH /me] procesando color:',
-        color,
-        'para userId:',
-        userId
-      )
       if (color === null || color === '') {
         updates.color = null
       } else {
@@ -106,7 +98,6 @@ router.patch('/me', authMiddleware, async (req, res) => {
             .json({ error: 'Color inválido (formato esperado: #RRGGBB)' })
         }
 
-        // Comprobar que el color no esté ya cogido por otro
         const { data: conflicts, error: conflictErr } = await supabase
           .from('profiles')
           .select('id')
@@ -125,6 +116,7 @@ router.patch('/me', authMiddleware, async (req, res) => {
         updates.color = color
       }
     }
+
     if (Object.keys(updates).length === 0) {
       return res.json({ message: 'Sin cambios', user: req.user })
     }
@@ -134,11 +126,14 @@ router.patch('/me', authMiddleware, async (req, res) => {
       .update(updates)
       .eq('id', userId)
       .select()
-      .single()
 
     if (error) return res.status(400).json({ error: error.message })
 
-    res.json({ message: 'Perfil actualizado', user: data })
+    if (!data || data.length === 0) {
+      return res.status(404).json({ error: 'Perfil no encontrado' })
+    }
+
+    res.json({ message: 'Perfil actualizado', user: data[0] })
   } catch (err) {
     console.error('Error en PATCH /me:', err)
     res.status(500).json({ error: 'Error interno del servidor' })
