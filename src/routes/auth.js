@@ -121,19 +121,28 @@ router.patch('/me', authMiddleware, async (req, res) => {
       return res.json({ message: 'Sin cambios', user: req.user })
     }
 
-    const { data, error } = await supabase
+    const { error: updateErr } = await supabase
       .from('profiles')
       .update(updates)
       .eq('id', userId)
-      .select()
 
-    if (error) return res.status(400).json({ error: error.message })
+    if (updateErr) {
+      return res.status(400).json({ error: updateErr.message })
+    }
+    const { data: updated, error: selectErr } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
 
-    if (!data || data.length === 0) {
-      return res.status(404).json({ error: 'Perfil no encontrado' })
+    if (selectErr) {
+      return res.status(400).json({ error: selectErr.message })
     }
 
-    res.json({ message: 'Perfil actualizado', user: data[0] })
+    if (!updated || updated.length === 0) {
+      return res.status(404).json({ error: 'Perfil no encontrado tras update' })
+    }
+
+    res.json({ message: 'Perfil actualizado', user: updated[0] })
   } catch (err) {
     console.error('Error en PATCH /me:', err)
     res.status(500).json({ error: 'Error interno del servidor' })
