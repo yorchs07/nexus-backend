@@ -11,7 +11,6 @@ const isValidHexColor = (s) =>
 //LOGIN
 router.post('/login', async (req, res) => {
   try {
-    console.log('Body: ', req.body)
     const { email, password } = req.body
 
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -30,8 +29,6 @@ router.post('/login', async (req, res) => {
       .maybeSingle()
 
     if (!profile) {
-      console.log('Perfil no existe, creando...')
-
       const { data: newProfile, error: insertError } = await supabase
         .from('profiles')
         .insert({
@@ -41,12 +38,8 @@ router.post('/login', async (req, res) => {
         .select()
 
       if (insertError) {
-        console.error('Error creando perfil:', insertError)
-      } else {
-        console.log('Perfil creado:', newProfile)
       }
     } else {
-      console.log('Perfil ya existente')
     }
 
     res.json({

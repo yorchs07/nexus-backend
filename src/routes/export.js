@@ -97,7 +97,7 @@ router.get('/monthly', authMiddleware, async (req, res) => {
 
     //Construir workbook
     const workbook = new ExcelJS.Workbook()
-    workbook.creator = 'Nexus by Balmis'
+    workbook.creator = 'Nexus'
     workbook.created = new Date()
 
     //Hoja horas
